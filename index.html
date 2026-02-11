@@ -103,7 +103,7 @@
          <div>
           <h4 class="text-base font-bold text-slate-900">📋 PROMPT SIAP DIGUNAKAN</h4>
           <p class="text-xs text-slate-600 mt-1">Salin ke ChatGPT, Claude, atau AI Chat favorit Anda</p>
-         </div><button id="copy-btn" class="py-3 px-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-lg transition-all transform hover:scale-[1.05] active:scale-[0.95] flex items-center justify-center gap-2 text-sm shadow-lg whitespace-nowrap">
+         </div><button id="copy-btn" type="button" class="py-3 px-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-lg transition-all transform hover:scale-[1.05] active:scale-[0.95] flex items-center justify-center gap-2 text-sm shadow-lg whitespace-nowrap">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg> Salin </button>
         </div>
@@ -131,7 +131,7 @@
         <p class="text-slate-500 font-medium text-sm">Belum ada riwayat</p>
         <p class="text-slate-400 text-xs mt-1">Simpan prompt untuk menyimpan</p>
        </div>
-      </div><!-- Clear History Button --> <button id="clear-history-btn" class="hidden w-full mt-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors"> 🗑️ Hapus Semua Riwayat </button>
+      </div><!-- Clear History Button --> <button id="clear-history-btn" type="button" class="hidden w-full mt-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors"> 🗑️ Hapus Semua Riwayat </button>
      </div>
     </div>
    </div>
@@ -141,7 +141,7 @@
   <div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto scrollbar-thin">
     <div class="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-     <h3 id="modal-title" class="text-xl font-bold text-slate-900"></h3><button id="modal-close-x" class="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+     <h3 id="modal-title" class="text-xl font-bold text-slate-900"></h3><button id="modal-close-x" type="button" class="text-slate-500 hover:text-slate-700 text-2xl">×</button>
     </div>
     <div class="p-6">
      <div id="modal-content" class="space-y-4"></div>
@@ -168,7 +168,7 @@
 
     (async () => {
       if (window.dataSdk) {
-        await window.dataSdk.init(dataHandler);
+        const initResult = await window.dataSdk.init(dataHandler);
       }
 
       if (window.elementSdk) {
@@ -356,7 +356,7 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
               <p class="text-xs text-slate-600 mt-1">👨‍🏫 ${item.teacher_name}</p>
               <p class="text-xs text-slate-500 mt-1">${formatDate(item.created_at)}</p>
             </div>
-            <button onclick="deleteHistoryItem('${item.__backendId}')" class="text-red-500 hover:text-red-700 text-lg p-1" title="Hapus">
+            <button type="button" onclick="deleteHistoryItem('${item.__backendId}')" class="text-red-500 hover:text-red-700 text-lg p-1" title="Hapus">
               ✕
             </button>
           </div>
@@ -407,10 +407,10 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
             </div>
           </div>
           <div class="flex gap-3 pt-4">
-            <button id="modal-copy-btn" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors">
+            <button id="modal-copy-btn" type="button" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors">
               Salin Prompt
             </button>
-            <button id="modal-close-btn" class="flex-1 py-2 bg-slate-300 hover:bg-slate-400 text-slate-900 font-semibold rounded-lg transition-colors">
+            <button id="modal-close-btn" type="button" class="flex-1 py-2 bg-slate-300 hover:bg-slate-400 text-slate-900 font-semibold rounded-lg transition-colors">
               Tutup
             </button>
           </div>
@@ -548,9 +548,16 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
       btnText.textContent = originalText;
     });
 
-    document.getElementById('save-history-btn').addEventListener('click', async function() {
+    document.getElementById('save-history-btn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      
       if (!lastGeneratedData) {
         showToast('❌ Generate prompt terlebih dahulu', true);
+        return;
+      }
+
+      if (!window.dataSdk) {
+        showToast('❌ Data SDK tidak tersedia', true);
         return;
       }
 
@@ -559,28 +566,36 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
       saveBtn.disabled = true;
       saveBtn.textContent = 'Menyimpan...';
 
-      const result = await window.dataSdk.create(lastGeneratedData);
+      try {
+        const result = await window.dataSdk.create(lastGeneratedData);
 
-      saveBtn.disabled = false;
-      
-      if (result.isOk) {
-        saveBtn.textContent = '✅ Tersimpan!';
-        saveBtn.classList.remove('from-amber-600', 'to-amber-500', 'hover:from-amber-500', 'hover:to-amber-400');
-        saveBtn.classList.add('from-emerald-600', 'to-emerald-500', 'hover:from-emerald-500', 'hover:to-emerald-400');
-        document.getElementById('save-status').classList.remove('hidden');
-        showToast('✅ Prompt berhasil disimpan ke Riwayat!');
-        setTimeout(() => {
+        if (result.isOk) {
+          saveBtn.textContent = '✅ Tersimpan!';
+          saveBtn.classList.remove('from-amber-600', 'to-amber-500', 'hover:from-amber-500', 'hover:to-amber-400');
+          saveBtn.classList.add('from-emerald-600', 'to-emerald-500', 'hover:from-emerald-500', 'hover:to-emerald-400');
+          document.getElementById('save-status').classList.remove('hidden');
+          showToast('✅ Prompt berhasil disimpan ke Riwayat!');
+          setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+            saveBtn.classList.remove('from-emerald-600', 'to-emerald-500', 'hover:from-emerald-500', 'hover:to-emerald-400');
+            saveBtn.classList.add('from-amber-600', 'to-amber-500', 'hover:from-amber-500', 'hover:to-amber-400');
+          }, 2000);
+        } else {
+          saveBtn.disabled = false;
           saveBtn.textContent = originalText;
-          saveBtn.classList.remove('from-emerald-600', 'to-emerald-500', 'hover:from-emerald-500', 'hover:to-emerald-400');
-          saveBtn.classList.add('from-amber-600', 'to-amber-500', 'hover:from-amber-500', 'hover:to-amber-400');
-        }, 2000);
-      } else {
+          const errorMsg = result.error ? result.error.message : 'Kesalahan tidak diketahui';
+          showToast('❌ Gagal menyimpan: ' + errorMsg, true);
+        }
+      } catch (error) {
+        saveBtn.disabled = false;
         saveBtn.textContent = originalText;
-        showToast('❌ Gagal menyimpan prompt', true);
+        showToast('❌ Error: ' + error.message, true);
       }
     });
 
-    document.getElementById('copy-btn').addEventListener('click', function() {
+    document.getElementById('copy-btn').addEventListener('click', function(e) {
+      e.preventDefault();
       const prompt = document.getElementById('generated-prompt').textContent;
       
       if (!prompt) {
@@ -599,7 +614,8 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
       }
     });
 
-    document.getElementById('clear-history-btn').addEventListener('click', async function() {
+    document.getElementById('clear-history-btn').addEventListener('click', async function(e) {
+      e.preventDefault();
       if (historyData.length === 0) return;
       
       const confirmDelete = confirm('Hapus semua riwayat? Tindakan ini tidak dapat dibatalkan.');
@@ -648,5 +664,5 @@ Silakan mulai membuat soal sesuai dengan spesifikasi di atas.`;
 
     applyConfig();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cc38f1391d17550',t:'MTc3MDgwOTg5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cc3ba743497ea81',t:'MTc3MDgxMTY3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
